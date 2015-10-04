@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostExtract", "PostExtract\PostExtract.csproj", "{652AC36F-7C79-4384-8C1D-CCB0C5CC7D33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMSys.Systems", "..\..\DMSys.SourceForge\DMSys.Framesource\DMSys.Systems\DMSys.Systems.csproj", "{E611627D-89D3-4560-959F-05CD28510086}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{652AC36F-7C79-4384-8C1D-CCB0C5CC7D33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{652AC36F-7C79-4384-8C1D-CCB0C5CC7D33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{652AC36F-7C79-4384-8C1D-CCB0C5CC7D33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{652AC36F-7C79-4384-8C1D-CCB0C5CC7D33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E611627D-89D3-4560-959F-05CD28510086}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E611627D-89D3-4560-959F-05CD28510086}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E611627D-89D3-4560-959F-05CD28510086}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E611627D-89D3-4560-959F-05CD28510086}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
