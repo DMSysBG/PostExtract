@@ -67,45 +67,80 @@ WHERE s.id = {0} ", sourceId);
                         dataAdapter.Fill(dtSource);
                         if (dtSource.Rows.Count > 0)
                         {
-                            DataRow drSource = dtSource.Rows[0];
-                            peTemplate = new PExtractTemplate()
-                            {
-                                SourceId = TryParse.ToInt32(drSource["n_source_id"]),
-                                CategoryId = TryParse.ToInt32(drSource["n_category_id"]),
-                                TemplateId = TryParse.ToInt32(drSource["n_template_id"]),
-                                SiteUrl = TryParse.ToString(drSource["s_link"]),
-                                XPList = TryParse.ToString(drSource["xp_list"]),
-                                XPLink = TryParse.ToString(drSource["xp_list_link"]),
-                                XPImage = TryParse.ToString(drSource["xp_list_image"]),
-                                XPContent = TryParse.ToString(drSource["xp_post"]),
-                                XPTitle = TryParse.ToString(drSource["xp_post_title"]),
-                                XPText = TryParse.ToString(drSource["xp_post_text"]),
-                                XPImages = TryParse.ToString(drSource["xp_post_images"]),
-                                XPAttributes = TryParse.ToString(drSource["xp_post_attributes"]),
-                                SQLAttributes = TryParse.ToString(drSource["sql_post_attributes"]),
-                                XPPrice = TryParse.ToString(drSource["xp_post_price"]),
-                                XPLocation = TryParse.ToString(drSource["xp_post_location"]),
-                                XPDate = TryParse.ToString(drSource["xp_post_date"]),
-                                XPPosted = TryParse.ToString(drSource["xp_post_posted"])
-                            };
+                            peTemplate = CreatePETemplate(dtSource.Rows[0]);
                         }
                     }
                 }
             }
-            /*
+            return peTemplate;
+        }
+        
+        public List<PExtractTemplate> GetPETemplates()
+        {
+            List<PExtractTemplate> peTemplates = new List<PExtractTemplate>();
+
+            using (NpgsqlCommand command = _Connection.CreateCommand())
+            {
+                command.CommandText =
+@"SELECT s.id AS n_source_id
+       , s.s_link
+       , s.n_site_id
+       , s.n_category_id
+       , t.id AS n_template_id
+       , t.t_name
+       , t.xp_list
+       , t.xp_list_link
+       , t.xp_list_image
+       , t.xp_post
+       , t.xp_post_title
+       , t.xp_post_text
+       , t.xp_post_images
+       , t.xp_post_attributes
+       , t.sql_post_attributes
+       , t.xp_post_price
+       , t.xp_post_location
+       , t.xp_post_date
+       , t.xp_post_posted
+FROM n_source s
+INNER JOIN n_template t ON t.id = s.n_template_id
+WHERE s.is_active = 1 ";
+                using (NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter(command))
+                {
+                    using (DataTable dtSource = new DataTable())
+                    {
+                        dataAdapter.Fill(dtSource);
+                        foreach (DataRow drSource in dtSource.Rows)
+                        {
+                            peTemplates.Add(CreatePETemplate(drSource));                            
+                        }
+                    }
+                }
+            }
+            return peTemplates;
+        }
+
+        private PExtractTemplate CreatePETemplate(DataRow drSource)
+        {
             PExtractTemplate peTemplate = new PExtractTemplate()
             {
-                SourceId = 1,
-                SiteUrl = "http://olx.bg/nedvizhimi-imoti/prodazhbi/",
-                XPList = "//ul[@id=\"gallerywide\"]//li",
-                XPLink = "//a[@href]",
-                XPImage = "//img[@src]",
-                XPContent = "//div[@class=\"clr offerbody\"]",
-                XPTitle = "//h1",
-                XPText = "//div[@id=\"textContent\"]",
-                XPImages = "//div[@id=\"offerdescription\"]//img[@src]",
-                XPAttributes = "//div[@id=\"offerdescription\"]//table[@class=\"item\"]"
-            };*/
+                SourceId = TryParse.ToInt32(drSource["n_source_id"]),
+                CategoryId = TryParse.ToInt32(drSource["n_category_id"]),
+                TemplateId = TryParse.ToInt32(drSource["n_template_id"]),
+                SiteUrl = TryParse.ToString(drSource["s_link"]),
+                XPList = TryParse.ToString(drSource["xp_list"]),
+                XPLink = TryParse.ToString(drSource["xp_list_link"]),
+                XPImage = TryParse.ToString(drSource["xp_list_image"]),
+                XPContent = TryParse.ToString(drSource["xp_post"]),
+                XPTitle = TryParse.ToString(drSource["xp_post_title"]),
+                XPText = TryParse.ToString(drSource["xp_post_text"]),
+                XPImages = TryParse.ToString(drSource["xp_post_images"]),
+                XPAttributes = TryParse.ToString(drSource["xp_post_attributes"]),
+                SQLAttributes = TryParse.ToString(drSource["sql_post_attributes"]),
+                XPPrice = TryParse.ToString(drSource["xp_post_price"]),
+                XPLocation = TryParse.ToString(drSource["xp_post_location"]),
+                XPDate = TryParse.ToString(drSource["xp_post_date"]),
+                XPPosted = TryParse.ToString(drSource["xp_post_posted"])
+            };
             return peTemplate;
         }
 
@@ -207,69 +242,9 @@ VALUES ( {0}, '{1}', {2}, {3}) ", postId, NpgsqlPString(attribute), categoryId, 
         {
             using (NpgsqlCommand command = _Connection.CreateCommand())
             {
-                // command.Transaction = _Connection.BeginTransaction();
-                try
-                {
-                    command.CommandText =
-                        "SELECT MAX(new_post_transaction_id) FROM post";
-                    int transactionId = TryParse.ToInt32(command.ExecuteScalar(), 0) + 1;
-
-                    command.CommandText = String.Format(
-@"INSERT INTO post
-( n_site_id
-, n_category_id
-, post_link
-, post_image
-, post_title
-, post_text
-, new_post_id
-, new_post_transaction_id
-, post_price
-, post_location
-, post_date
-, post_posted )
-SELECT s.n_site_id
-	 , s.n_category_id
-	 , np.post_link
-	 , np.post_image
-	 , np.post_title
-	 , np.post_text
-	 , np.id AS new_post_id
-	 , {0} AS new_post_transaction_id
-	 , np.post_price
-	 , np.post_location
-	 , np.post_date
-	 , np.post_posted
-FROM new_post np
-INNER JOIN n_source s ON s.id = np.n_source_id", transactionId);
-                    command.ExecuteNonQuery();
-
-                    command.CommandText = String.Format(
-@"INSERT INTO post_image
-( post_id, img_src )
-SELECT p.id, npi.img_src
-FROM post p
-INNER JOIN new_post_image npi ON npi.new_post_id = p.new_post_id
-WHERE p.new_post_transaction_id = {0}", transactionId);
-                    command.ExecuteNonQuery();
-
-                    command.CommandText = String.Format(
-@"INSERT INTO post_attribute
-( post_id, n_post_attribute_id, attribute_value )
-SELECT p.id, ta.n_post_attribute_id, npa.attribute_value
-FROM post p
-INNER JOIN new_post_attribute npa ON npa.new_post_id = p.new_post_id
-INNER JOIN n_template_attribute ta ON ta.id = npa.n_template_attribute_id
-WHERE p.new_post_transaction_id = {0}", transactionId);
-                    command.ExecuteNonQuery();
-
-                    //command.Transaction.Commit();
-                }
-                catch( Exception ex )
-                {
-                    Console.WriteLine(ex.Message);
-                    //command.Transaction.Rollback();
-                }
+                command.CommandText =
+                    "SELECT transfer_new_post()";
+                command.ExecuteScalar();
             }
         }
         
@@ -313,6 +288,14 @@ WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
                 command.CommandText = "SELECT temp_load_site_posted();";
                 command.ExecuteScalar();
 
+                // местоположения
+                command.CommandText = "SELECT temp_repair_location_item();";
+                command.ExecuteScalar();
+
+                // атрибути
+                command.CommandText = "SELECT temp_load_attribute_item();";
+                command.ExecuteScalar();
+
                 // Записва в лога публ. с неразпоснати атрибути
                 command.CommandText =
 @"INSERT INTO sys_exception (ex_message, stack_trace, ex_date)
@@ -324,7 +307,7 @@ WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
  FROM new_post np
  LEFT JOIN new_post_attribute npa ON npa.new_post_id = np.id
  LEFT JOIN n_template_attribute ta ON ta.id = npa.n_template_attribute_id
- LEFT JOIN n_category_attribute pa ON pa.id = ta.n_post_attribute_id
+ LEFT JOIN n_category_attribute pa ON pa.id = ta.n_category_attribute_id
  WHERE pa.id IS NULL ";
                 command.ExecuteNonQuery();
 

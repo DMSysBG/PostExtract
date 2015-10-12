@@ -44,50 +44,95 @@ namespace PostExtract
             }
             if (!String.IsNullOrWhiteSpace(filePost))
             {
-                using (DBExtract dbExtract = new DBExtract())
+                try
                 {
-                    PExtractTemplate peTemplate = dbExtract.GetPETemplate(sourceId);
-                    if (peTemplate == null)
+                    using (DBExtract dbExtract = new DBExtract())
                     {
-                        Console.WriteLine("Source '{0}' not found", sourceId);
-                    }
-                    else
-                    {
-                        using (PageExtract pExtract = new PageExtract(dbExtract))
+                        PExtractTemplate peTemplate = dbExtract.GetPETemplate(sourceId);
+                        if (peTemplate == null)
                         {
-                            pExtract.IsDebug = isDebug;
+                            Console.WriteLine("Source '{0}' not found", sourceId);
+                        }
+                        else
+                        {
+                            using (PageExtract pExtract = new PageExtract(dbExtract))
+                            {
+                                pExtract.IsDebug = isDebug;
 
-                            pExtract.ExecutePost(filePost, peTemplate);
+                                pExtract.ExecutePost(filePost, peTemplate);
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
                 }
             }
             // Изпълнява се само за sourceId
             else if (sourceId > 0)
             {
-                using (DBExtract dbExtract = new DBExtract())
+                try
                 {
-                    PExtractTemplate peTemplate = dbExtract.GetPETemplate(sourceId);
-                    if (peTemplate == null)
+                    using (DBExtract dbExtract = new DBExtract())
                     {
-                        Console.WriteLine("Source '{0}' not found", sourceId);
-                    }
-                    else
-                    {
-                        using (PageExtract pExtract = new PageExtract(dbExtract))
+                        PExtractTemplate peTemplate = dbExtract.GetPETemplate(sourceId);
+                        if (peTemplate == null)
                         {
-                            pExtract.IsDebug = isDebug;
-
-                            pExtract.Execute(peTemplate);
+                            Console.WriteLine("Source '{0}' not found", sourceId);
                         }
-                        // dbExtract.TransferNewPost();
-                        // dbExtract.EmptyNewPost();
+                        else
+                        {
+                            using (PageExtract pExtract = new PageExtract(dbExtract))
+                            {
+                                pExtract.IsDebug = isDebug;
+
+                                pExtract.Execute(peTemplate);
+                            }
+                            if (!isDebug)
+                            {
+                                dbExtract.TransferNewPost();
+                                dbExtract.EmptyNewPost();
+                            }
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
                 }
             }
             // За всички sources
             else
             {
+                try
+                {
+                    using (DBExtract dbExtract = new DBExtract())
+                    {
+                        List<PExtractTemplate> peTemplates = dbExtract.GetPETemplates();
+                        foreach (PExtractTemplate peTemplate in peTemplates)
+                        {
+                            using (PageExtract pExtract = new PageExtract(dbExtract))
+                            {
+                                pExtract.IsDebug = isDebug;
+
+                                pExtract.Execute(peTemplate);
+                            }
+                            if (!isDebug)
+                            {
+                                dbExtract.TransferNewPost();
+                                dbExtract.EmptyNewPost();
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                }
             }
             Console.WriteLine("Complete");
             if (isDebug)

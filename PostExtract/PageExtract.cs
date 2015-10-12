@@ -37,8 +37,11 @@ namespace PostExtract
             Console.WriteLine("Load Node Collection");
             LoadNodeCollection(peTemplate);
 
-            Console.WriteLine("Removes Duplicate");
-            _DBExtract.RemovesDuplicate();
+            if (!_IsDebug)
+            {
+                Console.WriteLine("Removes Duplicate");
+                _DBExtract.RemovesDuplicate();
+            }
 
             Console.WriteLine("Load Posts");
             LoadPosts(peTemplate);
