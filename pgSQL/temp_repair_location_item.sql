@@ -72,7 +72,21 @@ BEGIN
 	, t_location_name = trim(regexp_replace(t_location_name, 'в\.з\. ', '', 'g'))
    WHERE t_location_name ~* 'в\.з\. '
      AND t_location_type_id IS NULL;
+     
+   -- Язовир
+   UPDATE n_template_location_item
+      SET t_location_type_id = 8
+	, t_location_name = trim(regexp_replace(t_location_name, 'яз\. ', '', 'g'))
+   WHERE t_location_name ~* 'яз\. '
+     AND t_location_type_id IS NULL;
 
+   -- Хижа
+   UPDATE n_template_location_item
+      SET t_location_type_id = 9
+	, t_location_name = trim(regexp_replace(t_location_name, 'хижа ', '', 'g'))
+   WHERE t_location_name ~* 'хижа '
+     AND t_location_type_id IS NULL;
+     
    -- Район
    UPDATE n_template_location_item
       SET t_location_type_id = 7
@@ -118,7 +132,7 @@ BEGIN
    FROM n_template_location tl
    INNER JOIN n_template_location_item tli
       ON tli.n_template_location_id = tl.id
-     AND tli.t_location_type_id IN (2, 3, 4)
+     AND tli.t_location_type_id IN (2, 3, 4, 8, 9)
    WHERE tl.n_template_town_id IS NULL
      AND tl.n_template_province_id IS NOT NULL;
 

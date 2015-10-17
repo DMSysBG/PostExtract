@@ -13,8 +13,8 @@ namespace PostExtract
     {
         private DBExtract _DBExtract = null;
 
-        private bool _IsDebug = false;
-        public bool IsDebug
+        private int _IsDebug = 0;
+        public int IsDebug
         {
             get
             { return _IsDebug; }
@@ -37,7 +37,7 @@ namespace PostExtract
             Console.WriteLine("Load Node Collection");
             LoadNodeCollection(peTemplate);
 
-            if (!_IsDebug)
+            if (_IsDebug == 0)
             {
                 Console.WriteLine("Removes Duplicate");
                 _DBExtract.RemovesDuplicate();
@@ -77,6 +77,36 @@ namespace PostExtract
             _DBExtract.ValidatePublications();
 
             Console.WriteLine("End extract: {0}", filePost);
+        }
+        
+        public void ExecutePost(Uri uriPost, PExtractTemplate peTemplate)
+        {
+            Console.WriteLine("Begin extract: {0}", uriPost.ToString());
+            _DBExtract.EmptyNewPost();
+           
+            Console.WriteLine("Load Post");
+            int postId = -1;
+            if (_IsDebug >= 2)
+            {
+                postId = _DBExtract.AddNewPost(peTemplate.SourceId, peTemplate.CategoryId, peTemplate.TemplateId, uriPost.ToString(), "");
+            }
+            // Зарежда страницата
+            HtmlWeb page = new HtmlWeb();
+            HtmlDocument htmlDoc = page.Load(uriPost.ToString());
+
+            LoadPost(postId, htmlDoc, peTemplate);
+
+            if (_IsDebug >= 3)
+            {
+                Console.WriteLine("Execute SQLAttributes");
+                _DBExtract.ExecuteNonQuery(peTemplate.SQLAttributes);
+            }
+            if (_IsDebug >= 4)
+            {
+                Console.WriteLine("Validate Publications");
+                _DBExtract.ValidatePublications();
+            }
+            Console.WriteLine("End extract: {0}", uriPost.ToString());
         }
 
         /// <summary>
@@ -179,7 +209,7 @@ namespace PostExtract
                         int postId = TryParse.ToInt32(drPost["id"]);
                         string postLink = TryParse.ToString(drPost["post_link"]);
 
-                        if (_IsDebug)
+                        if (_IsDebug > 0)
                         { Console.WriteLine("{0}: {1}", postId, postLink); }
 
                         HtmlWeb page = new HtmlWeb();
@@ -236,8 +266,19 @@ namespace PostExtract
             pPost.Location = SelectHtmlText(htmlContent, pePost.XPLocation);
             pPost.Date = SelectHtmlText(htmlContent, pePost.XPDate);
             pPost.Posted = SelectHtmlText(htmlContent, pePost.XPPosted);
-
-            _DBExtract.SaveNewPost(postId, pePost.CategoryId, pePost.TemplateId, pPost);
+            if (_IsDebug > 0)
+            {
+                Console.WriteLine("Title    : {0}", pPost.Title); 
+                Console.WriteLine("Text     : {0}", pPost.Text);
+                Console.WriteLine("Price    : {0}", pPost.Price);
+                Console.WriteLine("Location : {0}", pPost.Location);
+                Console.WriteLine("Date     : {0}", pPost.Date);
+                Console.WriteLine("Posted   : {0}", pPost.Posted);
+            }
+            if (postId > 0)
+            {
+                _DBExtract.SaveNewPost(postId, pePost.CategoryId, pePost.TemplateId, pPost);
+            }
         }
     }
 }

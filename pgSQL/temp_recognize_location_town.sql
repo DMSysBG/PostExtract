@@ -15,7 +15,7 @@ BEGIN
 
    WHERE n_template_location.n_template_town_id IS NULL				-- Неразпознати градове
      AND tli.n_template_location_id = n_template_location.id
-     AND tli.t_location_type_id IN (2, 3, 4, 5)
+     AND tli.t_location_type_id IN (2, 3, 4, 5, 8, 9)
 										-- Търси съответствия
      AND tt.n_template_province_id = n_template_location.n_template_province_id
      AND tt.t_location_type_id = tli.t_location_type_id

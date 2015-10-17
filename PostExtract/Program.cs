@@ -11,67 +11,39 @@ namespace PostExtract
     {
         static void Main(string[] args)
         {
+            // Console.OutputEncoding = Encoding.Unicode;
             // Режим на Debug
-            bool isDebug = false;
+            int isDebug = 0;
             // Id на източник
             int sourceId = 0;
-            // Файл: Списък от публикации
-            string fileCollection = "";
+            // Url: Публикация
+            string urlPost = "";
             // Файл: Публикация
             string filePost = "";
             
             foreach (string arg in args)
             {
-                string[] value = arg.Split(':');
-                switch (value[0])
+                int argIndex = arg.IndexOf(':');
+                string argKey = arg.Substring(0, argIndex);
+                string argValue = arg.Substring(argIndex + 1, arg.Length - argIndex - 1);
+                switch (argKey)
                 {
-                    case "/d":
-                        isDebug = true;
+                    case "/d":  // Режим на Debug
+                        isDebug = TryParse.ToInt32(argValue);
                         break;
-                    case "/s":
-                        if (value.Length == 2)
-                        { sourceId = TryParse.ToInt32(value[1]); }
+                    case "/s":  // Id на източник
+                        sourceId = TryParse.ToInt32(argValue);
                         break;
-                    case "/fc":
-                        if (value.Length == 2)
-                        { fileCollection = TryParse.ToString(value[1]); }
+                    case "/up": // Адрес на публикация
+                        urlPost = TryParse.ToString(argValue);
                         break;
-                    case "/fp":
-                        if (value.Length == 2)
-                        { filePost = TryParse.ToString(value[1]); }
+                    case "/fp": // Път на публикация
+                        filePost = TryParse.ToString(argValue);
                         break;
-                }
-            }
-            if (!String.IsNullOrWhiteSpace(filePost))
-            {
-                try
-                {
-                    using (DBExtract dbExtract = new DBExtract())
-                    {
-                        PExtractTemplate peTemplate = dbExtract.GetPETemplate(sourceId);
-                        if (peTemplate == null)
-                        {
-                            Console.WriteLine("Source '{0}' not found", sourceId);
-                        }
-                        else
-                        {
-                            using (PageExtract pExtract = new PageExtract(dbExtract))
-                            {
-                                pExtract.IsDebug = isDebug;
-
-                                pExtract.ExecutePost(filePost, peTemplate);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex.StackTrace);
                 }
             }
             // Изпълнява се само за sourceId
-            else if (sourceId > 0)
+            if (sourceId > 0)
             {
                 try
                 {
@@ -88,11 +60,28 @@ namespace PostExtract
                             {
                                 pExtract.IsDebug = isDebug;
 
-                                pExtract.Execute(peTemplate);
+                                // Изпълнява се само за публикации на файла
+                                if (!String.IsNullOrWhiteSpace(filePost))
+                                {
+                                    pExtract.ExecutePost(filePost, peTemplate);
+                                }
+                                // Изпълнява се само за публикации от адреса
+                                else if (!String.IsNullOrWhiteSpace(urlPost))
+                                {
+                                    pExtract.ExecutePost(new Uri(urlPost), peTemplate);
+                                }
+                                // за всички публикации от източника
+                                else
+                                {
+                                    pExtract.Execute(peTemplate);
+                                }                                
                             }
-                            if (!isDebug)
+                            if ((isDebug == 0) || (isDebug >= 5))
                             {
                                 dbExtract.TransferNewPost();
+                            }
+                            if (isDebug == 0)
+                            {
                                 dbExtract.EmptyNewPost();
                             }
                         }
@@ -120,7 +109,7 @@ namespace PostExtract
 
                                 pExtract.Execute(peTemplate);
                             }
-                            if (!isDebug)
+                            if (isDebug == 0)
                             {
                                 dbExtract.TransferNewPost();
                                 dbExtract.EmptyNewPost();
@@ -135,7 +124,7 @@ namespace PostExtract
                 }
             }
             Console.WriteLine("Complete");
-            if (isDebug)
+            if (isDebug > 0)
             {
                 Console.ReadKey();
             }
