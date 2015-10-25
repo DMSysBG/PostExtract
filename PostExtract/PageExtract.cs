@@ -86,7 +86,7 @@ namespace PostExtract
            
             Console.WriteLine("Load Post");
             int postId = -1;
-            if (_IsDebug >= 2)
+            if ((_IsDebug == 0) || (_IsDebug >= 2))
             {
                 postId = _DBExtract.AddNewPost(peTemplate.SourceId, peTemplate.CategoryId, peTemplate.TemplateId, uriPost.ToString(), "");
             }
@@ -96,12 +96,12 @@ namespace PostExtract
 
             LoadPost(postId, htmlDoc, peTemplate);
 
-            if (_IsDebug >= 3)
+            if ((_IsDebug == 0) || (_IsDebug >= 3))
             {
                 Console.WriteLine("Execute SQLAttributes");
                 _DBExtract.ExecuteNonQuery(peTemplate.SQLAttributes);
             }
-            if (_IsDebug >= 4)
+            if ((_IsDebug == 0) || (_IsDebug >= 4))
             {
                 Console.WriteLine("Validate Publications");
                 _DBExtract.ValidatePublications();

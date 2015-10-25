@@ -7,6 +7,14 @@ using DMSys.Systems;
 
 namespace PostExtract
 {
+    /*
+    /d: 0 - Release
+        1 - Принтира публикацита на конзолата
+        2 - Добавя поста в базата
+        3 - Изпълнява SQL от базата
+        4 - Валидира публикацията
+        5 - Transfer
+    */
     class Program
     {
         static void Main(string[] args)

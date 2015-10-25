@@ -298,12 +298,12 @@ WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
 
                 // Записва в лога публ. с неразпоснати атрибути
                 command.CommandText =
-@"INSERT INTO sys_exception (ex_message, stack_trace, ex_date)
- SELECT DISTINCT 'source: '||np.n_source_id||
-		'; link: '||np.post_link||
-		'; title: '''||npa.attribute_value||'''' AS stack_trace
-		, 'Невалиден атрибут' AS ex_message
-        , now() AS ex_date
+@"INSERT INTO sys_exception (n_source_id, post_link, ex_message, stack_trace, ex_date)
+ SELECT DISTINCT np.n_source_id
+	  , np.post_link
+	  , 'attribute: '''||npa.attribute_value||'''' AS stack_trace
+	  , 'Невалиден атрибут' AS ex_message
+      , now() AS ex_date
  FROM new_post np
  LEFT JOIN new_post_attribute npa ON npa.new_post_id = np.id
  LEFT JOIN n_template_attribute ta ON ta.id = npa.n_template_attribute_id
@@ -311,7 +311,7 @@ WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
  WHERE pa.id IS NULL ";
                 command.ExecuteNonQuery();
 
-                // Премахва атребутите без публикация
+                // Премахва атрибутите без публикация
                 command.CommandText =
 @"DELETE FROM new_post_attribute
 WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
