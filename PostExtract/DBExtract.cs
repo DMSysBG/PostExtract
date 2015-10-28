@@ -4,40 +4,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data;
-using Npgsql;
 using DMSys.Systems;
+using DMSys.Data;
 
 namespace PostExtract
 {
-    public class DBExtract : IDisposable
+    public class DBExtract : NpgsqlUtility
     {
-        private NpgsqlConnection _Connection = null;
-
         public DBExtract()
-        {
-            string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["posts"].ConnectionString;
-
-            _Connection = new NpgsqlConnection(connectionString);
-            _Connection.Open();
-        }
-                
-        public void Dispose()
-        {
-            if (_Connection != null)
-            {
-                _Connection.Close();
-                _Connection.Dispose();
-                _Connection = null;
-            }
-        }
+            : base(xConfig.ConnectionString)
+        { }
 
         public PExtractTemplate GetPETemplate(int sourceId)
         {
             PExtractTemplate peTemplate = null;
-
-            using (NpgsqlCommand command = _Connection.CreateCommand())
-            {
-                command.CommandText = String.Format(
+            string commandText = String.Format(
 @"SELECT s.id AS n_source_id
        , s.s_link
        , s.n_site_id
@@ -59,29 +40,23 @@ namespace PostExtract
        , t.xp_post_posted
 FROM n_source s
 INNER JOIN n_template t ON t.id = s.n_template_id
-WHERE s.id = {0} ", sourceId);
-                using (NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter(command))
+WHERE s.id = {0} ", SQLInt(sourceId));
+
+            using (DataTable dtSource = base.FillDataTable(commandText))
+            {
+                if (dtSource.Rows.Count > 0)
                 {
-                    using (DataTable dtSource = new DataTable())
-                    {
-                        dataAdapter.Fill(dtSource);
-                        if (dtSource.Rows.Count > 0)
-                        {
-                            peTemplate = CreatePETemplate(dtSource.Rows[0]);
-                        }
-                    }
+                    peTemplate = CreatePETemplate(dtSource.Rows[0]);
                 }
             }
             return peTemplate;
         }
-        
+
         public List<PExtractTemplate> GetPETemplates()
         {
             List<PExtractTemplate> peTemplates = new List<PExtractTemplate>();
 
-            using (NpgsqlCommand command = _Connection.CreateCommand())
-            {
-                command.CommandText =
+            string commandText =
 @"SELECT s.id AS n_source_id
        , s.s_link
        , s.n_site_id
@@ -104,16 +79,12 @@ WHERE s.id = {0} ", sourceId);
 FROM n_source s
 INNER JOIN n_template t ON t.id = s.n_template_id
 WHERE s.is_active = 1 ";
-                using (NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter(command))
+
+            using (DataTable dtSource = base.FillDataTable(commandText))
+            {
+                foreach (DataRow drSource in dtSource.Rows)
                 {
-                    using (DataTable dtSource = new DataTable())
-                    {
-                        dataAdapter.Fill(dtSource);
-                        foreach (DataRow drSource in dtSource.Rows)
-                        {
-                            peTemplates.Add(CreatePETemplate(drSource));                            
-                        }
-                    }
+                    peTemplates.Add(CreatePETemplate(drSource));
                 }
             }
             return peTemplates;
@@ -146,9 +117,7 @@ WHERE s.is_active = 1 ";
 
         public void EmptyNewPost()
         {
-            using (NpgsqlCommand command = _Connection.CreateCommand())
-            {
-                command.CommandText =
+            string commandText =
 @"DELETE FROM new_post_image;
   DELETE FROM new_post_attribute;
   DELETE FROM new_post;
@@ -156,38 +125,26 @@ WHERE s.is_active = 1 ";
   ALTER SEQUENCE new_post_attribute_id_seq RESTART WITH 1;
   ALTER SEQUENCE new_post_id_seq RESTART WITH 1; ";
 
-                command.ExecuteNonQuery();
-            }
+            base.ExecuteNonQuery(commandText);
         }
 
         public int AddNewPost(int sourceId, int categoryId, int templateId, string link, string image)
         {
-            int rowId = 0;
-            using (NpgsqlCommand command = _Connection.CreateCommand())
-            {
-                // Записва данните
-                command.CommandText = String.Format(
+            // Записва данните
+            string commandText = String.Format(
 @"INSERT INTO new_post ( n_source_id, n_category_id, n_template_id, post_link, post_image)
   VALUES ( {0}, {1}, {2}, '{3}', '{4}')
   RETURNING id; ", sourceId, categoryId, templateId, link, image);
 
-                rowId = TryParse.ToInt32( command.ExecuteScalar());
-            }
+            int rowId = TryParse.ToInt32(base.ExecuteScalar(commandText));
             return rowId;
         }
 
         public DataTable GetNewPost()
         {
-            DataTable dtPosts = new DataTable();
-            using (NpgsqlCommand command = _Connection.CreateCommand())
-            {
-                command.CommandText = "SELECT id, post_link FROM new_post";
-                using (NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter(command))
-                {
-                    dataAdapter.Fill(dtPosts);
-                }
-            }
-            return dtPosts;
+            string commandText =
+                "SELECT id, post_link FROM new_post";
+            return base.FillDataTable(commandText);
         }
 
         /// <summary>
@@ -195,43 +152,40 @@ WHERE s.is_active = 1 ";
         /// </summary>
         public void SaveNewPost(int postId, int categoryId, int templateId, PPost pPost)
         {
-            using (NpgsqlCommand command = _Connection.CreateCommand())
-            {
-                command.CommandText = String.Format(
+            string commandText = String.Format(
 @"UPDATE new_post
-     SET post_title = '{1}'
-       , post_text = '{2}'
-       , post_price = '{3}'
-       , post_location = '{4}'
-       , post_date = '{5}'
-       , post_posted = '{6}'
-  WHERE id = {0}", postId
-                 , NpgsqlPString(pPost.Title)
-                 , NpgsqlPString(pPost.Text)
-                 , NpgsqlPString(pPost.Price)
-                 , NpgsqlPString(pPost.Location)
-                 , NpgsqlPString(pPost.Date)
-                 , NpgsqlPString(pPost.Posted));
+     SET post_title = {1}
+       , post_text = {2}
+       , post_price = {3}
+       , post_location = {4}
+       , post_date = {5}
+       , post_posted = {6}
+  WHERE id = {0}", SQLInt(postId)
+                 , SQLString(pPost.Title)
+                 , SQLString(pPost.Text)
+                 , SQLString(pPost.Price)
+                 , SQLString(pPost.Location)
+                 , SQLString(pPost.Date)
+                 , SQLString(pPost.Posted));
 
-                command.ExecuteNonQuery();
+            base.ExecuteNonQuery(commandText);
 
-                foreach (string imgSrc in pPost.Images)
-                {
-                    command.CommandText = String.Format(
+            foreach (string imgSrc in pPost.Images)
+            {
+                commandText = String.Format(
 @"INSERT INTO new_post_image ( new_post_id, img_src )
-VALUES ( {0}, '{1}' ) ", postId, NpgsqlPString(imgSrc));
+VALUES ( {0}, {1} ) ", SQLInt(postId), SQLString(imgSrc));
 
-                    command.ExecuteNonQuery();
-                }
+                base.ExecuteNonQuery(commandText);
+            }
 
-                foreach (string attribute in pPost.Attributes)
-                {
-                    command.CommandText = String.Format(
+            foreach (string attribute in pPost.Attributes)
+            {
+                commandText = String.Format(
 @"INSERT INTO new_post_attribute ( new_post_id, attribute_value, n_category_id, n_template_id )
-VALUES ( {0}, '{1}', {2}, {3}) ", postId, NpgsqlPString(attribute), categoryId, templateId);
+VALUES ( {0}, {1}, {2}, {3}) ", SQLInt(postId), SQLString(attribute), SQLInt(categoryId), SQLInt(templateId));
 
-                    command.ExecuteNonQuery();
-                }
+                base.ExecuteNonQuery(commandText);
             }
         }
 
@@ -240,12 +194,9 @@ VALUES ( {0}, '{1}', {2}, {3}) ", postId, NpgsqlPString(attribute), categoryId, 
         /// </summary>
         public void TransferNewPost()
         {
-            using (NpgsqlCommand command = _Connection.CreateCommand())
-            {
-                command.CommandText =
+             string commandText =
                     "SELECT transfer_new_post()";
-                command.ExecuteScalar();
-            }
+             base.ExecuteScalar(commandText);
         }
         
         /// <summary>
@@ -253,24 +204,21 @@ VALUES ( {0}, '{1}', {2}, {3}) ", postId, NpgsqlPString(attribute), categoryId, 
         /// </summary>
         public void RemovesDuplicate()
         {
-            using (NpgsqlCommand command = _Connection.CreateCommand())
-            {
-                command.CommandText =
+            string commandText =
 @"DELETE FROM new_post
 WHERE id in ( SELECT np.id FROM new_post np
 		      INNER JOIN post p ON p.post_link = np.post_link ) ";
-                command.ExecuteNonQuery();
+            base.ExecuteNonQuery(commandText);
 
-                command.CommandText =
+            commandText =
 @"DELETE FROM new_post_attribute
 WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
-                command.ExecuteNonQuery();
+            base.ExecuteNonQuery(commandText);
 
-                command.CommandText =
+            commandText =
 @"DELETE FROM new_post_image
 WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
-                command.ExecuteNonQuery();
-            }
+            base.ExecuteNonQuery(commandText);
         }
 
         /// <summary>
@@ -278,26 +226,24 @@ WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
         /// </summary>
         public void ValidatePublications()
         {
-            using (NpgsqlCommand command = _Connection.CreateCommand())
-            {
-                // локации
-                command.CommandText = "SELECT temp_load_location();";
-                command.ExecuteScalar();
+            // локации
+            string commandText = "SELECT temp_load_location();";
+            base.ExecuteScalar(commandText);
 
-                // публикатори
-                command.CommandText = "SELECT temp_load_site_posted();";
-                command.ExecuteScalar();
+            // публикатори
+            commandText = "SELECT temp_load_site_posted();";
+            base.ExecuteScalar(commandText);
 
-                // местоположения
-                command.CommandText = "SELECT temp_repair_location_item();";
-                command.ExecuteScalar();
+            // местоположения
+            commandText = "SELECT temp_repair_location_item();";
+            base.ExecuteScalar(commandText);
 
-                // атрибути
-                command.CommandText = "SELECT temp_load_attribute_item();";
-                command.ExecuteScalar();
+            // атрибути
+            commandText = "SELECT temp_load_attribute_item();";
+            base.ExecuteScalar(commandText);
 
-                // Записва в лога публ. с неразпоснати атрибути
-                command.CommandText =
+            // Записва в лога публ. с неразпоснати атрибути
+            commandText =
 @"INSERT INTO sys_exception (n_source_id, post_link, ex_message, stack_trace, ex_date)
  SELECT DISTINCT np.n_source_id
 	  , np.post_link
@@ -309,40 +255,19 @@ WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
  LEFT JOIN n_template_attribute ta ON ta.id = npa.n_template_attribute_id
  LEFT JOIN n_category_attribute pa ON pa.id = ta.n_category_attribute_id
  WHERE pa.id IS NULL ";
-                command.ExecuteNonQuery();
+            base.ExecuteNonQuery(commandText);
 
-                // Премахва атрибутите без публикация
-                command.CommandText =
+            // Премахва атрибутите без публикация
+            commandText =
 @"DELETE FROM new_post_attribute
 WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
-                command.ExecuteNonQuery();
+            base.ExecuteNonQuery(commandText);
 
-                // Премахва снимките без публикация
-                command.CommandText =
+            // Премахва снимките без публикация
+            commandText =
 @"DELETE FROM new_post_image
 WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
-                command.ExecuteNonQuery();
-            }
-        }
-
-        /// <summary>
-        /// Изпълнява подадения SQL
-        /// </summary>
-        public void ExecuteNonQuery(string commandText)
-        {
-            if (!String.IsNullOrWhiteSpace(commandText))
-            {
-                using (NpgsqlCommand command = _Connection.CreateCommand())
-                {
-                    command.CommandText = commandText;
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
-
-        private string NpgsqlPString(string value)
-        {
-            return value.Replace("'", "''");
+            base.ExecuteNonQuery(commandText);
         }
     }
 }

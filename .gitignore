@@ -50,6 +50,7 @@ build/
 [Bb]in/
 [Oo]bj/
 [Pp]ackages/
+App.config
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

@@ -24,6 +24,8 @@ namespace PostExtract
             int isDebug = 0;
             // Id на източник
             int sourceId = 0;
+            // Id на публикация за публикуване
+            int publishPostId = 0;
             // Url: Публикация
             string urlPost = "";
             // Файл: Публикация
@@ -47,6 +49,9 @@ namespace PostExtract
                         break;
                     case "/fp": // Път на публикация
                         filePost = TryParse.ToString(argValue);
+                        break;
+                    case "/ppi":  // Id на публикация за публикуване
+                        publishPostId = TryParse.ToInt32(argValue);
                         break;
                 }
             }
@@ -93,6 +98,21 @@ namespace PostExtract
                                 dbExtract.EmptyNewPost();
                             }
                         }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                }
+            }
+            // Изпълнява се само за publishPostId
+            else if (publishPostId > 0)
+            {
+                try
+                {
+                    using (DBExtract dbExtract = new DBExtract())
+                    {
                     }
                 }
                 catch (Exception ex)

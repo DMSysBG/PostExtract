@@ -24,7 +24,8 @@ BEGIN
 	, n_template_location_id
 	, post_date
 	, n_site_posted_id
-	, post_price_type_id )
+	, post_price_type_id
+	, post_progress_id )
    SELECT s.n_site_id
 	, s.n_category_id
 	, np.post_link
@@ -33,11 +34,12 @@ BEGIN
 	, np.post_text
 	, np.id AS new_post_id
 	, postTransactionId AS new_post_transaction_id
-	, CASE WHEN np.post_price~E'^\\d+$' THEN np.post_price::decimal(12,2) ELSE 0 END AS post_price
+	, CASE WHEN np.post_price~E'^\\d+' THEN np.post_price::decimal(12,2) ELSE 0 END AS post_price
 	, np.n_template_location_id
 	, np.post_date_time
 	, np.n_site_posted_id
 	, np.post_price_type_id
+	, 1 AS post_progress_id
    FROM new_post np
    INNER JOIN n_source s ON s.id = np.n_source_id;
 
@@ -70,7 +72,12 @@ BEGIN
      AND npa.n_category_attribute_type_id > 0
    WHERE p.new_post_transaction_id = postTransactionId;
 
-  RETURN postTransactionId;
+   -- Маркира пуб. като обработена
+   UPDATE post
+      SET post_progress_id = 2
+   WHERE new_post_transaction_id = postTransactionId;
+   
+   RETURN postTransactionId;
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE

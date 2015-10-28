@@ -27,6 +27,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -37,6 +39,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -46,13 +49,11 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HtmlAgilityPack">
       <HintPath>..\packages\HtmlAgilityPack.1.4.9\lib\Net45\HtmlAgilityPack.dll</HintPath>
-    </Reference>
-    <Reference Include="Npgsql">
-      <HintPath>..\packages\Npgsql.3.0.3\lib\net45\Npgsql.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -70,15 +71,24 @@
     <Compile Include="PPost.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="xConfig.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\DMSys.SourceForge\DMSys.Framesource\DMSys.Data\DMSys.Data.csproj">
+      <Project>{d731ebc1-783f-4c37-8198-3be8c419f506}</Project>
+      <Name>DMSys.Data</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\DMSys.SourceForge\DMSys.Framesource\DMSys.Systems\DMSys.Systems.csproj">
       <Project>{e611627d-89d3-4560-959f-05cd28510086}</Project>
       <Name>DMSys.Systems</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\PostStore\Post.Models\Post.Models.csproj">
+      <Project>{ebd3d2e8-55bd-4c13-93c8-25529a24b361}</Project>
+      <Name>Post.Models</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

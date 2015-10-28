@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostExtract", "PostExtract\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMSys.Systems", "..\..\DMSys.SourceForge\DMSys.Framesource\DMSys.Systems\DMSys.Systems.csproj", "{E611627D-89D3-4560-959F-05CD28510086}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Post.Models", "..\PostStore\Post.Models\Post.Models.csproj", "{EBD3D2E8-55BD-4C13-93C8-25529A24B361}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMSys.Data", "..\..\DMSys.SourceForge\DMSys.Framesource\DMSys.Data\DMSys.Data.csproj", "{D731EBC1-783F-4C37-8198-3BE8C419F506}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{E611627D-89D3-4560-959F-05CD28510086}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E611627D-89D3-4560-959F-05CD28510086}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E611627D-89D3-4560-959F-05CD28510086}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBD3D2E8-55BD-4C13-93C8-25529A24B361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBD3D2E8-55BD-4C13-93C8-25529A24B361}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBD3D2E8-55BD-4C13-93C8-25529A24B361}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBD3D2E8-55BD-4C13-93C8-25529A24B361}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D731EBC1-783F-4C37-8198-3BE8C419F506}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D731EBC1-783F-4C37-8198-3BE8C419F506}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D731EBC1-783F-4C37-8198-3BE8C419F506}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D731EBC1-783F-4C37-8198-3BE8C419F506}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
