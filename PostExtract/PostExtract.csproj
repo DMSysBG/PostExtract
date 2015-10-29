@@ -66,8 +66,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DBExtract.cs" />
-    <Compile Include="PageExtract.cs" />
+    <Compile Include="PostExtract.cs" />
     <Compile Include="PExtractTemplate.cs" />
+    <Compile Include="PostPublish.cs" />
     <Compile Include="PPost.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

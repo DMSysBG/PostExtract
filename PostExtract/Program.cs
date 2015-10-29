@@ -69,7 +69,7 @@ namespace PostExtract
                         }
                         else
                         {
-                            using (PageExtract pExtract = new PageExtract(dbExtract))
+                            using (PostExtract pExtract = new PostExtract(dbExtract))
                             {
                                 pExtract.IsDebug = isDebug;
 
@@ -113,6 +113,10 @@ namespace PostExtract
                 {
                     using (DBExtract dbExtract = new DBExtract())
                     {
+                        using (PostPublish pPublish = new PostPublish(dbExtract))
+                        {
+                            pPublish.PublishPost(publishPostId);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -131,7 +135,7 @@ namespace PostExtract
                         List<PExtractTemplate> peTemplates = dbExtract.GetPETemplates();
                         foreach (PExtractTemplate peTemplate in peTemplates)
                         {
-                            using (PageExtract pExtract = new PageExtract(dbExtract))
+                            using (PostExtract pExtract = new PostExtract(dbExtract))
                             {
                                 pExtract.IsDebug = isDebug;
 

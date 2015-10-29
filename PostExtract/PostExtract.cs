@@ -9,7 +9,7 @@ using DMSys.Systems;
 
 namespace PostExtract
 {
-    public class PageExtract: IDisposable
+    public class PostExtract: IDisposable
     {
         private DBExtract _DBExtract = null;
 
@@ -22,7 +22,7 @@ namespace PostExtract
             { _IsDebug = value; }
         }        
 
-        public PageExtract(DBExtract dbExtract)
+        public PostExtract(DBExtract dbExtract)
         {
             _DBExtract = dbExtract;
         }

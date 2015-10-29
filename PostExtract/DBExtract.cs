@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data;
 using DMSys.Systems;
 using DMSys.Data;
+using Post.Models;
 
 namespace PostExtract
 {
@@ -268,6 +269,53 @@ WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
 @"DELETE FROM new_post_image
 WHERE new_post_id NOT IN (SELECT id FROM new_post) ";
             base.ExecuteNonQuery(commandText);
+        }
+
+        /// <summary>
+        /// Публикация
+        /// </summary>
+        public PostModel GetPost(int postId)
+        {
+            string commandText =
+@"SELECT p.id
+       , p.n_site_id
+       , p.n_category_id
+       , p.post_link
+       , p.post_image
+       , p.post_title
+       , p.post_text
+       , p.new_post_id
+       , p.new_post_transaction_id
+       , p.post_price
+       , p.n_template_location_id
+       , p.post_date
+       , p.n_site_posted_id
+       , p.post_price_type_id
+ FROM post p
+ WHERE p.id = " + SQLInt(postId);
+            PostModel model = null;
+            using (DataTable dtPost = base.FillDataTable(commandText))
+            {
+                if (dtPost.Rows.Count > 0)
+                {
+                    DataRow drPost = dtPost.Rows[0];
+                    model = new PostModel()
+                    {
+                        PostId = TryParse.ToInt32(drPost["id"]),
+                        SiteId = TryParse.ToInt32(drPost["n_site_id"]),
+                        CategoryId = TryParse.ToInt32(drPost["n_category_id"]),
+                        PLink = TryParse.ToString(drPost["post_link"]),
+                        PImage = TryParse.ToString(drPost["post_image"]),
+                        PTitle = TryParse.ToString(drPost["post_title"]),
+                        PText = TryParse.ToString(drPost["post_text"]),
+                        PPrice = TryParse.ToDecimal(drPost["post_price"]),
+                        PDate = TryParse.ToDateTime(drPost["post_date"]),
+                        SitePostedId = TryParse.ToInt32(drPost["n_site_posted_id"]),
+                        PPriceTypeId = TryParse.ToInt32(drPost["post_price_type_id"])
+                    };
+                }
+            }
+            return model;
         }
     }
 }
