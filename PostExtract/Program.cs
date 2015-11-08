@@ -8,18 +8,23 @@ using DMSys.Systems;
 namespace PostExtract
 {
     /*
+    /s      -- екстракт
     /d: 0 - Release
         1 - Принтира публикацита на конзолата
         2 - Добавя поста в базата
         3 - Изпълнява SQL от базата
         4 - Валидира публикацията
         5 - Transfer
+     * 
+    /ppi    -- публикуване
+    /d: 0 - Release
+        1 - Взема публикацията
     */
     class Program
     {
         static void Main(string[] args)
         {
-            // Console.OutputEncoding = Encoding.Unicode;
+            Console.OutputEncoding = Encoding.Unicode;
             // Режим на Debug
             int isDebug = 0;
             // Id на източник
@@ -106,27 +111,8 @@ namespace PostExtract
                     Console.WriteLine(ex.StackTrace);
                 }
             }
-            // Изпълнява се само за publishPostId
-            else if (publishPostId > 0)
-            {
-                try
-                {
-                    using (DBExtract dbExtract = new DBExtract())
-                    {
-                        using (PostPublish pPublish = new PostPublish(dbExtract))
-                        {
-                            pPublish.PublishPost(publishPostId);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex.StackTrace);
-                }
-            }
             // За всички sources
-            else
+            else if (sourceId == -1)
             {
                 try
                 {
@@ -155,6 +141,28 @@ namespace PostExtract
                     Console.WriteLine(ex.StackTrace);
                 }
             }
+            
+            // Изпълнява се само за publishPostId
+            if (publishPostId > 0)
+            {
+                try
+                {
+                    using (DBExtract dbExtract = new DBExtract())
+                    {
+                        using (PostPublish pPublish = new PostPublish(dbExtract))
+                        {
+                            pPublish.IsDebug = isDebug;
+                            pPublish.PublishPost(publishPostId);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                }
+            }
+
             Console.WriteLine("Complete");
             if (isDebug > 0)
             {
